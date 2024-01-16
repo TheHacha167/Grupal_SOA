@@ -1,0 +1,57 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <errno.h> // Add this line
+#include <limits.h> 
+
+#ifndef PATH_MAX
+#define PATH_MAX 4096 // Definir un valor si PATH_MAX no está definido
+#endif
+
+
+
+int main(int argc, char *argv[]) {
+    // Verificar el número de argumentos
+    if (argc != 5) {
+        fprintf(stderr, "Uso: %s <directorio> <tamaño_min> <tamaño_max>\n", argv[0]);
+        return 1;
+    }
+
+    const char *directorio = argv[1];
+    long tamaño_min = atol(argv[2]);
+    long tamaño_max = atol(argv[3]);
+
+    // Abrir el directorio
+    DIR *dir = opendir(directorio);
+    if (dir == NULL) {
+        perror("opendir");
+        return 1;
+    }
+
+    struct dirent *entrada;
+    struct stat info_archivo;
+    char ruta_completa[PATH_MAX];
+
+    // Leer entradas en el directorio
+    while ((entrada = readdir(dir)) != NULL) {
+        // Construir la ruta completa del archivo
+        snprintf(ruta_completa, sizeof(ruta_completa), "%s/%s", directorio, entrada->d_name);
+
+        // Obtener información del archivo
+        if (stat(ruta_completa, &info_archivo) == -1) {
+            perror("stat");
+            continue;
+        }
+
+        // Verificar si el tamaño del archivo está en el rango especificado
+        if (S_ISREG(info_archivo.st_mode) &&
+            info_archivo.st_size >= tamaño_min &&
+            info_archivo.st_size <= tamaño_max) {
+            printf("%s (%ld bytes)\n", ruta_completa, info_archivo.st_size);
+        }
+    }
+
+    closedir(dir);
+    return 0;
+}
