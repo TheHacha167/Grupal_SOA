@@ -2,18 +2,11 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <sys/stat.h>
-#include <errno.h> // Add this line
-#include <limits.h> 
-
-#ifndef PATH_MAX
-#define PATH_MAX 4096 // Definir un valor si PATH_MAX no está definido
-#endif
-
-
+#include <string.h>
 
 int main(int argc, char *argv[]) {
-    // Verificar el número de argumentos
-    if (argc != 5) {
+    // Verificar el número correcto de argumentos
+    if (argc != 4) {
         fprintf(stderr, "Uso: %s <directorio> <tamaño_min> <tamaño_max>\n", argv[0]);
         return 1;
     }
@@ -25,30 +18,35 @@ int main(int argc, char *argv[]) {
     // Abrir el directorio
     DIR *dir = opendir(directorio);
     if (dir == NULL) {
-        perror("opendir");
+        perror("Error al abrir el directorio");
         return 1;
     }
 
     struct dirent *entrada;
     struct stat info_archivo;
-    char ruta_completa[PATH_MAX];
+    char ruta_completa[4096];
 
     // Leer entradas en el directorio
     while ((entrada = readdir(dir)) != NULL) {
+        // Ignorar directorios '.' y '..'
+        if (strcmp(entrada->d_name, ".") == 0 || strcmp(entrada->d_name, "..") == 0) {
+            continue;
+        }
+
         // Construir la ruta completa del archivo
         snprintf(ruta_completa, sizeof(ruta_completa), "%s/%s", directorio, entrada->d_name);
 
         // Obtener información del archivo
         if (stat(ruta_completa, &info_archivo) == -1) {
-            perror("stat");
+            perror("Error al obtener información del archivo");
             continue;
         }
 
         // Verificar si el tamaño del archivo está en el rango especificado
-        if (S_ISREG(info_archivo.st_mode) &&
-            info_archivo.st_size >= tamaño_min &&
-            info_archivo.st_size <= tamaño_max) {
-            printf("%s (%ld bytes)\n", ruta_completa, info_archivo.st_size);
+        if ((info_archivo.st_mode & S_IFMT) == S_IFREG) { // Verificar si es un archivo regular
+            if (info_archivo.st_size >= tamaño_min && info_archivo.st_size <= tamaño_max) {
+                printf("Archivo: %s (Tamaño: %ld bytes)\n", ruta_completa, info_archivo.st_size);
+            }
         }
     }
 
