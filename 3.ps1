@@ -1,21 +1,28 @@
-# Esta funcion solicita al usuario que introduzca un nombre de usuario
+# Función para pedir al usuario que introduzca un nombre de usuario
 function SolicitarUsuario() {
     $usuario = Read-Host "Introduce el nombre de usuario"
     return $usuario
 }
 
-# Esta funcion verifica si un usuario existe en el sistema
+# Función para verificar si un usuario existe en el sistema Linux
+# Utiliza el comando 'id' de Linux para verificar la existencia del usuario
 function VerificarUsuario($usuario) {
-    # Obtener lista de usuarios locales y buscar el nombre de usuario proporcionado
-    $existe = Get-LocalUser | Where-Object { $_.Name -eq $usuario } | Measure-Object
-    # Devuelve verdadero si se encontro el usuario, falso de lo contrario
-    return $existe.Count -gt 0
+    try {
+        # Ejecuta el comando 'id' y captura el resultado
+        $output = bash -c "id $usuario"
+        # Si el comando se ejecuta sin errores, el usuario existe
+        return $true
+    } catch {
+        # Si ocurre un error (excepción), asumimos que el usuario no existe
+        return $false
+    }
 }
 
-# Uso de las funciones
+# Ejemplo de uso de las funciones
 $usuario = SolicitarUsuario
 $existeUsuario = VerificarUsuario $usuario
 
+# Informar al usuario si el usuario solicitado existe o no
 if ($existeUsuario) {
     Write-Host "El usuario $usuario existe."
 } else {
