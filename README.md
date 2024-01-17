@@ -38,7 +38,4 @@ Este proyecto se distribuye bajo la Licencia MIT.
 ### Ejercicio 6: Búsqueda de Ficheros por Propietario
 - **Descripción**: Escribe un programa en C que busque dentro de un directorio los ficheros que sean propiedad de un usuario específico, cuyo ID se pasa como argumento.
 
-### Ejercicio 7: [Falta la descripción del ejercicio]
-- **Descripción**: [Detalles del ejercicio]
-
 
